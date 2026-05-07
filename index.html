@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AlgoBros Live Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --green:    #3fb950;
+      --red:      #f85149;
+      --blue:     #58a6ff;
+      --gold:     #d29922;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+    .header-right { display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 13px; }
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+      background: var(--muted);
+    }
+    .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot.red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+    #refresh-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Main layout ─────────────────────────────────────────── */
+    main { max-width: 1280px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* ── Section headings ────────────────────────────────────── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Account P&L cards ───────────────────────────────────── */
+    #cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .account-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+    .card-account { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .card-today   { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .card-30d     { font-size: 13px; margin-top: 4px; color: var(--muted); }
+    .card-30d span { font-weight: 600; }
+
+    /* ── Tables (shared) ─────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--surface2); }
+    thead th {
+      padding: 9px 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    tbody tr { border-top: 1px solid var(--border); }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td { padding: 9px 12px; white-space: nowrap; }
+    .right { text-align: right; }
+    .mono { font-variant-numeric: tabular-nums; font-size: 13px; }
+
+    /* ── Profit/loss coloring ────────────────────────────────── */
+    .pos { color: var(--green); }
+    .neg { color: var(--red); }
+
+    /* ── Win-rate pill ───────────────────────────────────────── */
+    .pill {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill.good { background: rgba(63,185,80,.15); color: var(--green); }
+    .pill.fair { background: rgba(210,153,34,.15); color: var(--gold); }
+    .pill.bad  { background: rgba(248,81,73,.15);  color: var(--red);  }
+
+    /* ── Direction badge ─────────────────────────────────────── */
+    .dir {
+      font-size: 11px; font-weight: 700; padding: 1px 6px;
+      border-radius: 4px; letter-spacing: 0.3px;
+    }
+    .dir.long  { background: rgba(63,185,80,.15); color: var(--green); }
+    .dir.short { background: rgba(248,81,73,.15);  color: var(--red); }
+
+    /* ── Chart section ───────────────────────────────────────── */
+    #chart-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    #pnl-chart { max-height: 220px; }
+
+    /* ── Empty / error states ────────────────────────────────── */
+    .empty {
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    #error-banner {
+      display: none;
+      background: rgba(248,81,73,.12);
+      border: 1px solid rgba(248,81,73,.4);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--red);
+      font-size: 13px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      header { padding: 12px 16px; }
+      main   { padding: 16px; }
+      .card-today { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="dot" id="status-dot"></span>
+    <h1>AlgoBros Live Dashboard</h1>
+  </div>
+  <div class="header-right">
+    <span id="date-label"></span>
+    <span id="refresh-badge">↻ loading…</span>
+  </div>
+</header>
+
+<main>
+  <div id="error-banner"></div>
+
+  <!-- Account P&L Cards -->
+  <section id="cards-section">
+    <div class="section-title">Account P&amp;L</div>
+    <div id="cards-grid"><div class="empty">Loading…</div></div>
+  </section>
+
+  <!-- Today's Strategy Breakdown -->
+  <section id="summary-section">
+    <div class="section-title">Today's Strategy Breakdown</div>
+    <div id="summary-container"><div class="empty">Loading…</div></div>
+  </section>
+
+  <!-- 30-Day Chart -->
+  <section id="chart-section">
+    <div class="section-title">30-Day Account P&amp;L</div>
+    <div id="chart-container">
+      <canvas id="pnl-chart"></canvas>
+    </div>
+  </section>
+
+  <!-- Last 30 Days Trade Log -->
+  <section id="trades-section">
+    <div class="section-title">Last 30 Days — Trade Log</div>
+    <div id="trades-container"><div class="empty">Loading…</div></div>
+  </section>
+</main>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbyA_kRIHF1c7kUabElYggONXykwscnrnR9wx4KDiuc6DpbvZCklhnrEbj3iE3t5WPsBJQ/exec';
+const REFRESH_SECS = 60;
+const CHART_COLORS = ['#58a6ff','#3fb950','#d29922','#a371f7','#f85149','#56d364','#e3b341'];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let chartInstance  = null;
+let countdown      = REFRESH_SECS;
+let countdownTimer = null;
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+fetchAndRender();
+startCountdown();
+
+function startCountdown() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdown = REFRESH_SECS;
+  countdownTimer = setInterval(() => {
+    countdown--;
+    document.getElementById('refresh-badge').textContent = '↻ in ' + countdown + 's';
+    if (countdown <= 0) {
+      countdown = REFRESH_SECS;
+      fetchAndRender();
+    }
+  }, 1000);
+}
+
+// ── Fetch ─────────────────────────────────────────────────────────────────────
+async function fetchAndRender() {
+  const dot    = document.getElementById('status-dot');
+  const banner = document.getElementById('error-banner');
+  try {
+    const res  = await fetch(SCRIPT_URL + '?action=dashboard&_=' + Date.now());
+    const data = await res.json();
+    if (data.status === 'error') throw new Error(data.message);
+
+    banner.style.display = 'none';
+    dot.className = 'dot green';
+    renderAll(data);
+  } catch (err) {
+    dot.className = 'dot red';
+    banner.style.display = 'block';
+    banner.textContent = '⚠ Could not load data: ' + err.message;
+  }
+}
+
+// ── Render all ────────────────────────────────────────────────────────────────
+function renderAll(data) {
+  const today  = data.date || '';
+  const trades = data.trades  || [];
+  const summary= data.summary || [];
+  const history= data.history || {};
+
+  // Update header date
+  document.getElementById('date-label').textContent = fmtDateLabel(today);
+
+  // Compute per-account today + 30d totals from the trades array
+  const todayPnL = {}, rolling30PnL = {};
+  trades.forEach(t => {
+    if (!rolling30PnL[t.account]) { rolling30PnL[t.account] = 0; todayPnL[t.account] = 0; }
+    rolling30PnL[t.account] += t.netPnL;
+    if (t.date === today) todayPnL[t.account] += t.netPnL;
+  });
+
+  renderCards(todayPnL, rolling30PnL);
+  renderSummary(summary);
+  renderChart(history);
+  renderTrades(trades);
+}
+
+// ── Account P&L Cards ─────────────────────────────────────────────────────────
+function renderCards(todayPnL, rolling30PnL) {
+  const grid     = document.getElementById('cards-grid');
+  const accounts = Object.keys(rolling30PnL).sort();
+  if (!accounts.length) { grid.innerHTML = '<div class="empty">No trades in the last 30 days.</div>'; return; }
+
+  grid.innerHTML = accounts.map(acct => {
+    const today30 = todayPnL[acct] || 0;
+    const roll    = rolling30PnL[acct] || 0;
+    return `
+      <div class="account-card">
+        <div class="card-account">${esc(acct)}</div>
+        <div class="card-today ${pnlClass(today30)}">${fmtDollar(today30, true)}</div>
+        <div class="card-30d">30-day: <span class="${pnlClass(roll)}">${fmtDollar(roll, true)}</span></div>
+      </div>`;
+  }).join('');
+}
+
+// ── Today's Strategy Breakdown Table ─────────────────────────────────────────
+function renderSummary(rows) {
+  const el = document.getElementById('summary-container');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">No strategy data for today yet.</div>';
+    return;
+  }
+  const tbody = rows.map(r => `
+    <tr>
+      <td>${esc(r.account)}</td>
+      <td>${esc(r.strategy)}</td>
+      <td>${esc(r.instruments)}</td>
+      <td class="right mono">${r.trades}</td>
+      <td class="right mono">${r.wins}</td>
+      <td class="right mono">${r.losses}</td>
+      <td class="right"><span class="pill ${winClass(r.winRate)}">${r.winRate.toFixed(0)}%</span></td>
+      <td class="right mono ${pnlClass(r.grossPnL)}">${fmtDollar(r.grossPnL)}</td>
+      <td class="right mono neg">${fmtDollar(r.commission)}</td>
+      <td class="right mono ${pnlClass(r.netPnL)}">${fmtDollar(r.netPnL, true)}</td>
+    </tr>`).join('');
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Account</th><th>Strategy</th><th>Instruments</th>
+          <th class="right">Trades</th><th class="right">W</th><th class="right">L</th>
+          <th class="right">Win%</th>
+          <th class="right">Gross P&amp;L</th><th class="right">Commission</th><th class="right">Net P&amp;L</th>
+        </tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── 30-Day P&L Chart ──────────────────────────────────────────────────────────
+function renderChart(history) {
+  const accounts = Object.keys(history).sort();
+  if (!accounts.length) {
+    document.getElementById('chart-container').innerHTML =
+      '<div class="empty">No account history data yet.</div>';
+    return;
+  }
+
+  // Build union of all dates, sorted
+  const dateSet = new Set();
+  accounts.forEach(a => history[a].forEach(e => dateSet.add(e.date)));
+  const labels = [...dateSet].sort();
+
+  const datasets = accounts.map((acct, i) => {
+    const byDate = {};
+    history[acct].forEach(e => byDate[e.date] = e.netPnL);
+    return {
+      label:           acct,
+      data:            labels.map(d => byDate[d] ?? null),
+      borderColor:     CHART_COLORS[i % CHART_COLORS.length],
+      backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '22',
+      borderWidth:     2,
+      pointRadius:     3,
+      pointHoverRadius:5,
+      tension:         0.25,
+      fill:            false,
+      spanGaps:        true
+    };
+  });
+
+  const ctx = document.getElementById('pnl-chart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: labels.map(d => fmtDateShort(d)), datasets },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#8b949e', font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': ' + fmtDollar(ctx.parsed.y, true)
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b949e', maxRotation: 45, font: { size: 11 } }, grid: { color: '#21262d' } },
+        y: {
+          ticks: {
+            color: '#8b949e', font: { size: 11 },
+            callback: v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0 })
+          },
+          grid: { color: '#21262d' }
+        }
+      }
+    }
+  });
+}
+
+// ── Trade Log Table ───────────────────────────────────────────────────────────
+function renderTrades(trades) {
+  const el = document.getElementById('trades-container');
+  if (!trades.length) {
+    el.innerHTML = '<div class="empty">No trades in the last 30 days.</div>';
+    return;
+  }
+
+  const tbody = trades.map(t => `
+    <tr>
+      <td class="mono">${esc(t.date)}</td>
+      <td class="mono">${fmtTime(t.exitTime)}</td>
+      <td>${esc(t.account)}</td>
+      <td>${esc(t.strategy)}</td>
+      <td>${esc(t.instrument)}</td>
+      <td><span class="dir ${t.direction === 'Long' ? 'long' : 'short'}">${esc(t.direction)}</span></td>
+      <td class="right mono">${t.qty}</td>
+      <td class="right mono">${t.entryPrice.toFixed(2)}</td>
+      <td class="right mono">${t.exitPrice.toFixed(2)}</td>
+      <td class="right mono ${pnlClass(t.netPnL)}">${fmtDollar(t.netPnL, true)}</td>
+    </tr>`).join('');
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Exit Time</th><th>Account</th><th>Strategy</th><th>Instr</th>
+          <th>Dir</th><th class="right">Qty</th>
+          <th class="right">Entry</th><th class="right">Exit</th>
+          <th class="right">Net P&amp;L</th>
+        </tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function pnlClass(v) { return v > 0 ? 'pos' : v < 0 ? 'neg' : ''; }
+function winClass(r) { return r >= 55 ? 'good' : r >= 40 ? 'fair' : 'bad'; }
+
+function fmtDollar(v, signed) {
+  const n   = parseFloat(v) || 0;
+  const abs = Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (signed) return (n >= 0 ? '+$' : '-$') + abs;
+  return (n < 0 ? '-$' : '$') + abs;
+}
+
+function fmtDateLabel(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return iso; }
+}
+
+function fmtDateShort(iso) {
+  if (!iso || iso.length < 10) return iso;
+  const m = parseInt(iso.substring(5,7));
+  const d = parseInt(iso.substring(8,10));
+  return m + '/' + d;
+}
+
+function fmtTime(isoStr) {
+  if (!isoStr) return '—';
+  try {
+    // Try to parse ISO 8601 strings like "2026-05-07T09:32:00-05:00"
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr.substring(11, 16) || isoStr;
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  } catch { return isoStr; }
+}
+
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
