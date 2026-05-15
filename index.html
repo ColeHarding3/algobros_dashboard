@@ -7,16 +7,16 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg:       #0d1117;
-      --surface:  #161b22;
-      --surface2: #21262d;
-      --border:   #30363d;
-      --text:     #e6edf3;
-      --muted:    #8b949e;
-      --green:    #3fb950;
-      --red:      #f85149;
-      --blue:     #58a6ff;
-      --gold:     #d29922;
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --s2:      #21262d;
+      --border:  #30363d;
+      --text:    #e6edf3;
+      --muted:   #8b949e;
+      --green:   #3fb950;
+      --red:     #f85149;
+      --blue:    #58a6ff;
+      --gold:    #d29922;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -27,50 +27,98 @@
       line-height: 1.5;
     }
 
-    /* ── Header ──────────────────────────────────────────────── */
+    /* ── Header ───────────────────────────────────────────────────────────── */
     header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 24px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
       flex-wrap: wrap;
       gap: 8px;
     }
     .header-left { display: flex; align-items: center; gap: 10px; }
-    header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
-    .header-right { display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 13px; }
-    .dot {
-      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
-      background: var(--muted);
-    }
+    header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+    .header-right { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
     .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
     .dot.red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
     #refresh-badge {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 2px 10px;
-      font-size: 12px;
-      font-variant-numeric: tabular-nums;
+      background: var(--s2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2px 10px;
+      font-size: 12px; font-variant-numeric: tabular-nums;
     }
 
-    /* ── Main layout ─────────────────────────────────────────── */
-    main { max-width: 1280px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
-
-    /* ── Section headings ────────────────────────────────────── */
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
+    /* ── Tab bar ──────────────────────────────────────────────────────────── */
+    #tab-bar {
+      display: flex;
+      padding: 0 20px;
+      border-top: 1px solid var(--border);
+      overflow-x: auto;
+      gap: 2px;
+    }
+    #tab-bar::-webkit-scrollbar { height: 3px; }
+    #tab-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .tab-btn {
+      padding: 9px 18px;
+      font-size: 13px; font-weight: 500;
       color: var(--muted);
-      margin-bottom: 12px;
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer; white-space: nowrap;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    /* ── Main layout ──────────────────────────────────────────────────────── */
+    main { max-width: 1400px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 4px; }
+    .panel { display: none; flex-direction: column; gap: 24px; }
+    .panel.active { display: flex; }
+
+    /* ── Error banner ─────────────────────────────────────────────────────── */
+    #error-banner {
+      display: none;
+      background: rgba(248,81,73,.1);
+      border: 1px solid rgba(248,81,73,.4);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--red);
+      font-size: 13px;
+      margin-bottom: 8px;
     }
 
-    /* ── Account P&L cards ───────────────────────────────────── */
-    #cards-grid {
+    /* ── Section title ────────────────────────────────────────────────────── */
+    .section-title {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--muted); margin-bottom: 12px;
+    }
+
+    /* ── Stat chips ───────────────────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+    }
+    .stat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+    }
+    .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 5px; }
+    .stat-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .stat-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Account overview cards (All tab) ─────────────────────────────────── */
+    .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 12px;
@@ -81,157 +129,159 @@
       border-radius: 8px;
       padding: 16px 20px;
     }
-    .card-account { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-    .card-today   { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .card-30d     { font-size: 13px; margin-top: 4px; color: var(--muted); }
-    .card-30d span { font-weight: 600; }
+    .card-name  { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .card-today { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .card-meta  { font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+    .card-meta b { font-weight: 600; }
 
-    /* ── Tables (shared) ─────────────────────────────────────── */
-    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
-    table { width: 100%; border-collapse: collapse; }
-    thead tr { background: var(--surface2); }
-    thead th {
-      padding: 9px 12px;
-      text-align: left;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    tbody tr { border-top: 1px solid var(--border); }
-    tbody tr:hover { background: var(--surface2); }
-    tbody td { padding: 9px 12px; white-space: nowrap; }
-    .right { text-align: right; }
-    .mono { font-variant-numeric: tabular-nums; font-size: 13px; }
-
-    /* ── Profit/loss coloring ────────────────────────────────── */
-    .pos { color: var(--green); }
-    .neg { color: var(--red); }
-
-    /* ── Win-rate pill ───────────────────────────────────────── */
-    .pill {
-      display: inline-block;
-      padding: 1px 7px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .pill.good { background: rgba(63,185,80,.15); color: var(--green); }
-    .pill.fair { background: rgba(210,153,34,.15); color: var(--gold); }
-    .pill.bad  { background: rgba(248,81,73,.15);  color: var(--red);  }
-
-    /* ── Direction badge ─────────────────────────────────────── */
-    .dir {
-      font-size: 11px; font-weight: 700; padding: 1px 6px;
-      border-radius: 4px; letter-spacing: 0.3px;
-    }
-    .dir.long  { background: rgba(63,185,80,.15); color: var(--green); }
-    .dir.short { background: rgba(248,81,73,.15);  color: var(--red); }
-
-    /* ── Chart section ───────────────────────────────────────── */
-    #chart-container {
+    /* ── Chart ────────────────────────────────────────────────────────────── */
+    .chart-box {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 20px;
     }
-    #pnl-chart { max-height: 220px; }
+    .chart-box canvas { max-height: 210px; }
 
-    /* ── Empty / error states ────────────────────────────────── */
-    .empty {
-      padding: 32px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
+    /* ── Tables ───────────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--s2); }
+    thead th {
+      padding: 9px 12px; text-align: left;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      color: var(--muted); white-space: nowrap;
     }
-    #error-banner {
-      display: none;
-      background: rgba(248,81,73,.12);
-      border: 1px solid rgba(248,81,73,.4);
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: var(--red);
-      font-size: 13px;
-    }
+    tbody tr { border-top: 1px solid var(--border); }
+    tbody tr:hover { background: var(--s2); }
+    tbody td { padding: 9px 12px; white-space: nowrap; }
+    tfoot tr { border-top: 2px solid var(--border); background: var(--s2); }
+    tfoot td { padding: 9px 12px; font-weight: 600; white-space: nowrap; font-size: 13px; }
+    .right { text-align: right; }
+    .mono { font-variant-numeric: tabular-nums; font-size: 13px; }
 
-    /* ── Responsive ──────────────────────────────────────────── */
+    /* ── P&L / Win colors ─────────────────────────────────────────────────── */
+    .pos  { color: var(--green); }
+    .neg  { color: var(--red); }
+    .warn { color: var(--gold); }
+
+    /* ── Win-rate pill ────────────────────────────────────────────────────── */
+    .pill { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+    .pill.good { background: rgba(63,185,80,.15);  color: var(--green); }
+    .pill.fair { background: rgba(210,153,34,.15); color: var(--gold); }
+    .pill.bad  { background: rgba(248,81,73,.15);  color: var(--red); }
+
+    /* ── Direction badge ──────────────────────────────────────────────────── */
+    .dir { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+    .dir.long  { background: rgba(63,185,80,.15);  color: var(--green); }
+    .dir.short { background: rgba(248,81,73,.15);  color: var(--red); }
+
+    /* ── Empty state ──────────────────────────────────────────────────────── */
+    .empty { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
+
+    /* ── Responsive ───────────────────────────────────────────────────────── */
     @media (max-width: 600px) {
-      header { padding: 12px 16px; }
-      main   { padding: 16px; }
-      .card-today { font-size: 22px; }
+      /* Header — hide secondary date label to save space */
+      .header-top { padding: 10px 14px; gap: 6px; }
+      header h1   { font-size: 15px; }
+      #date-label { display: none; }
+
+      /* Tab bar — smaller touch targets still pass 44 px min via padding */
+      #tab-bar  { padding: 0 6px; }
+      .tab-btn  { padding: 11px 12px; font-size: 12px; }
+
+      /* Main content */
+      main   { padding: 12px; }
+      .panel { gap: 16px; }
+
+      /* Stat chips — force 2-column grid */
+      .stats-row  { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .stat-chip  { padding: 11px 13px; }
+      .stat-label { font-size: 10px; }
+      .stat-value { font-size: 19px; }
+      .stat-sub   { font-size: 11px; }
+
+      /* Account overview cards — full width stack */
+      .cards-grid   { grid-template-columns: 1fr; gap: 8px; }
+      .account-card { padding: 13px 15px; }
+      .card-today   { font-size: 22px; }
+
+      /* Charts — tighter padding, slightly shorter canvas */
+      .chart-box        { padding: 12px 8px; }
+      .chart-box canvas { max-height: 170px; }
+
+      /* Tables — tighter cells so less horizontal scroll is needed */
+      thead th { padding: 7px 8px; font-size: 10px; letter-spacing: 0; }
+      tbody td { padding: 7px 8px; font-size: 12px; }
+      tfoot td { padding: 7px 8px; font-size: 12px; }
+      .mono    { font-size: 12px; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="header-left">
-    <span class="dot" id="status-dot"></span>
-    <h1>AlgoBros Live Dashboard</h1>
+  <div class="header-top">
+    <div class="header-left">
+      <span class="dot" id="status-dot"></span>
+      <h1>AlgoBros Live Dashboard</h1>
+    </div>
+    <div class="header-right">
+      <span id="date-label"></span>
+      <span id="refresh-badge">↻ loading…</span>
+    </div>
   </div>
-  <div class="header-right">
-    <span id="date-label"></span>
-    <span id="refresh-badge">↻ loading…</span>
-  </div>
+  <div id="tab-bar"></div>
 </header>
 
 <main>
   <div id="error-banner"></div>
-
-  <!-- Account P&L Cards -->
-  <section id="cards-section">
-    <div class="section-title">Account P&amp;L</div>
-    <div id="cards-grid"><div class="empty">Loading…</div></div>
-  </section>
-
-  <!-- Today's Strategy Breakdown -->
-  <section id="summary-section">
-    <div class="section-title">Today's Strategy Breakdown</div>
-    <div id="summary-container"><div class="empty">Loading…</div></div>
-  </section>
-
-  <!-- 30-Day Chart -->
-  <section id="chart-section">
-    <div class="section-title">30-Day Account P&amp;L</div>
-    <div id="chart-container">
-      <canvas id="pnl-chart"></canvas>
-    </div>
-  </section>
-
-  <!-- Last 30 Days Trade Log -->
-  <section id="trades-section">
-    <div class="section-title">Last 30 Days — Trade Log</div>
-    <div id="trades-container"><div class="empty">Loading…</div></div>
-  </section>
+  <div id="panels"></div>
 </main>
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbyA_kRIHF1c7kUabElYggONXykwscnrnR9wx4KDiuc6DpbvZCklhnrEbj3iE3t5WPsBJQ/exec';
 const REFRESH_SECS = 60;
-const CHART_COLORS = ['#58a6ff','#3fb950','#d29922','#a371f7','#f85149','#56d364','#e3b341'];
+const PALETTE      = ['#58a6ff','#3fb950','#d29922','#a371f7','#f85149','#56d364','#e3b341','#79c0ff'];
+
+// ── Account name mapping ──────────────────────────────────────────────────────
+function friendlyName(acct) {
+  if (!acct) return acct;
+  if (acct === '1646590') return 'Live Cash Account';
+  const up = acct.toUpperCase();
+  if (up.includes('DEMO')) return 'Simulation Account';
+  if (up.includes('MFF')) {
+    const digits = acct.replace(/\D/g, '');
+    const suffix = digits.length >= 2 ? digits.slice(-2) : digits || '??';
+    return 'My Funded Futures #' + suffix;
+  }
+  return acct;
+}
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let chartInstance  = null;
-let countdown      = REFRESH_SECS;
-let countdownTimer = null;
+let charts    = {};   // canvasId → Chart instance
+let countdown = REFRESH_SECS;
+let cdTimer   = null;
+let activeTab = 'all';
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
+document.getElementById('tab-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (btn) activateTab(btn.dataset.tab);
+});
+
 fetchAndRender();
 startCountdown();
 
 function startCountdown() {
-  if (countdownTimer) clearInterval(countdownTimer);
+  if (cdTimer) clearInterval(cdTimer);
   countdown = REFRESH_SECS;
-  countdownTimer = setInterval(() => {
+  cdTimer = setInterval(() => {
     countdown--;
     document.getElementById('refresh-badge').textContent = '↻ in ' + countdown + 's';
-    if (countdown <= 0) {
-      countdown = REFRESH_SECS;
-      fetchAndRender();
-    }
+    if (countdown <= 0) { countdown = REFRESH_SECS; fetchAndRender(); }
   }, 1000);
 }
 
@@ -243,130 +293,282 @@ async function fetchAndRender() {
     const res  = await fetch(SCRIPT_URL + '?action=dashboard&_=' + Date.now());
     const data = await res.json();
     if (data.status === 'error') throw new Error(data.message);
-
     banner.style.display = 'none';
     dot.className = 'dot green';
-    renderAll(data);
+    render(data);
   } catch (err) {
     dot.className = 'dot red';
     banner.style.display = 'block';
-    banner.textContent = '⚠ Could not load data: ' + err.message;
+    banner.textContent   = '⚠ Could not load data: ' + err.message;
   }
 }
 
-// ── Render all ────────────────────────────────────────────────────────────────
-function renderAll(data) {
-  const today  = data.date || '';
-  const trades = data.trades  || [];
-  const summary= data.summary || [];
-  const history= data.history || {};
+// ── Main render ───────────────────────────────────────────────────────────────
+function render(data) {
+  const today     = data.date || '';
+  const trades    = (data.trades || []).slice().sort(cmpTrades);
+  const history   = data.history   || {};   // { acctName: [{date, accountBalance}] }
+  const snapshots = data.snapshots || [];   // [{timestamp, date, account, accountBalance}]
 
-  // Update header date
   document.getElementById('date-label').textContent = fmtDateLabel(today);
 
-  // Compute per-account today + 30d totals from the trades array
-  const todayPnL = {}, rolling30PnL = {};
-  trades.forEach(t => {
-    if (!rolling30PnL[t.account]) { rolling30PnL[t.account] = 0; todayPnL[t.account] = 0; }
-    rolling30PnL[t.account] += t.netPnL;
-    if (t.date === today) todayPnL[t.account] += t.netPnL;
+  const accounts = [...new Set(trades.map(t => t.account))].sort();
+
+  buildTabs(accounts);
+  buildPanels(accounts, trades, today, history, snapshots);
+  activateTab(accounts.includes(activeTab) ? activeTab : 'all');
+}
+
+// ── Tab system ────────────────────────────────────────────────────────────────
+function buildTabs(accounts) {
+  document.getElementById('tab-bar').innerHTML =
+    ['all', ...accounts].map(id => `
+      <button class="tab-btn" data-tab="${esc(id)}">
+        ${id === 'all' ? 'All Accounts' : esc(friendlyName(id))}
+      </button>`).join('');
+}
+
+function activateTab(id) {
+  activeTab = id;
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === id));
+  document.querySelectorAll('.panel').forEach(p =>
+    p.classList.toggle('active', p.dataset.panel === id));
+}
+
+// ── Build all panels ──────────────────────────────────────────────────────────
+function buildPanels(accounts, trades, today, history, snapshots) {
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+
+  const container = document.getElementById('panels');
+  container.innerHTML = '';
+  container.appendChild(buildAllPanel(accounts, trades, today));
+  accounts.forEach((acct, i) => {
+    const acctTrades = trades.filter(t => t.account === acct);
+    const acctHist   = (history[acct] || []).slice().sort((a, b) => a.date < b.date ? -1 : 1);
+    const acctSnaps  = snapshots.filter(s => s.account === acct);
+    container.appendChild(
+      buildAccountPanel(acct, acctTrades, today, acctHist, acctSnaps, PALETTE[i % PALETTE.length])
+    );
   });
-
-  renderCards(todayPnL, rolling30PnL);
-  renderSummary(summary);
-  renderChart(history);
-  renderTrades(trades);
 }
 
-// ── Account P&L Cards ─────────────────────────────────────────────────────────
-function renderCards(todayPnL, rolling30PnL) {
-  const grid     = document.getElementById('cards-grid');
-  const accounts = Object.keys(rolling30PnL).sort();
-  if (!accounts.length) { grid.innerHTML = '<div class="empty">No trades in the last 30 days.</div>'; return; }
+// ── "All Accounts" panel ──────────────────────────────────────────────────────
+function buildAllPanel(accounts, trades, today) {
+  const panel = makePanel('all');
 
-  grid.innerHTML = accounts.map(acct => {
-    const today30 = todayPnL[acct] || 0;
-    const roll    = rolling30PnL[acct] || 0;
-    return `
-      <div class="account-card">
-        <div class="card-account">${esc(acct)}</div>
-        <div class="card-today ${pnlClass(today30)}">${fmtDollar(today30, true)}</div>
-        <div class="card-30d">30-day: <span class="${pnlClass(roll)}">${fmtDollar(roll, true)}</span></div>
-      </div>`;
-  }).join('');
-}
+  // Account cards
+  const cardsSec = el('div');
+  cardsSec.innerHTML = '<div class="section-title">Account Summary</div>';
+  const grid = el('div', 'cards-grid');
 
-// ── Today's Strategy Breakdown Table ─────────────────────────────────────────
-function renderSummary(rows) {
-  const el = document.getElementById('summary-container');
-  if (!rows.length) {
-    el.innerHTML = '<div class="empty">No strategy data for today yet.</div>';
-    return;
-  }
-  const tbody = rows.map(r => `
-    <tr>
-      <td>${esc(r.account)}</td>
-      <td>${esc(r.strategy)}</td>
-      <td>${esc(r.instruments)}</td>
-      <td class="right mono">${r.trades}</td>
-      <td class="right mono">${r.wins}</td>
-      <td class="right mono">${r.losses}</td>
-      <td class="right"><span class="pill ${winClass(r.winRate)}">${r.winRate.toFixed(0)}%</span></td>
-      <td class="right mono ${pnlClass(r.grossPnL)}">${fmtDollar(r.grossPnL)}</td>
-      <td class="right mono neg">${fmtDollar(r.commission)}</td>
-      <td class="right mono ${pnlClass(r.netPnL)}">${fmtDollar(r.netPnL, true)}</td>
-    </tr>`).join('');
-
-  el.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Account</th><th>Strategy</th><th>Instruments</th>
-          <th class="right">Trades</th><th class="right">W</th><th class="right">L</th>
-          <th class="right">Win%</th>
-          <th class="right">Gross P&amp;L</th><th class="right">Commission</th><th class="right">Net P&amp;L</th>
-        </tr></thead>
-        <tbody>${tbody}</tbody>
-      </table>
-    </div>`;
-}
-
-// ── 30-Day P&L Chart ──────────────────────────────────────────────────────────
-function renderChart(history) {
-  const accounts = Object.keys(history).sort();
   if (!accounts.length) {
-    document.getElementById('chart-container').innerHTML =
-      '<div class="empty">No account history data yet.</div>';
-    return;
+    grid.innerHTML = '<div class="empty">No trades in the last 30 days.</div>';
+  } else {
+    accounts.forEach((acct, i) => {
+      const at = trades.filter(t => t.account === acct);
+      const todayPnL = at.filter(t => t.date === today).reduce((s, t) => s + t.netPnL, 0);
+      const pnl30    = at.reduce((s, t) => s + t.netPnL, 0);
+      const wins     = at.filter(t => t.netPnL > 0).length;
+      const wr       = at.length ? wins / at.length * 100 : 0;
+      const dd       = maxDrawdown(at);
+
+      grid.innerHTML += `
+        <div class="account-card">
+          <div class="card-name">${esc(friendlyName(acct))}</div>
+          <div class="card-today ${pnlCls(todayPnL)}">${fmtD(todayPnL, true)}</div>
+          <div class="card-meta">
+            <div>30-day P&L: <b class="${pnlCls(pnl30)}">${fmtD(pnl30, true)}</b></div>
+            <div>Win rate: <b>${wr.toFixed(0)}%</b>&nbsp;&nbsp;·&nbsp;&nbsp;Max DD: <b class="${ddCls(dd)}">${dd.toFixed(1)}%</b></div>
+            <div style="color:var(--muted)">${at.length} trade${at.length !== 1 ? 's' : ''}</div>
+          </div>
+        </div>`;
+    });
+  }
+  cardsSec.appendChild(grid);
+  panel.appendChild(cardsSec);
+
+  // Multi-account equity chart
+  if (accounts.length) {
+    const chartSec = el('div');
+    chartSec.innerHTML = '<div class="section-title">30-Day Cumulative P&L — All Accounts</div>';
+    const box = el('div', 'chart-box');
+    const cvs = el('canvas');
+    cvs.id = 'chart-all';
+    box.appendChild(cvs);
+    chartSec.appendChild(box);
+    panel.appendChild(chartSec);
+    setTimeout(() => renderAllChart('chart-all', accounts, trades), 0);
   }
 
-  // Build union of all dates, sorted
-  const dateSet = new Set();
-  accounts.forEach(a => history[a].forEach(e => dateSet.add(e.date)));
-  const labels = [...dateSet].sort();
+  // Full trade log
+  const logSec = el('div');
+  logSec.innerHTML = '<div class="section-title">All Trades — Last 30 Days</div>';
+  logSec.appendChild(makeTradeTable(trades.slice().reverse(), true));
+  panel.appendChild(logSec);
+
+  return panel;
+}
+
+// ── Per-account panel ─────────────────────────────────────────────────────────
+function buildAccountPanel(acct, trades, today, history, snapshots, color) {
+  const panel = makePanel(acct);
+
+  const todayTrades = trades.filter(t => t.date === today);
+  const todayPnL    = todayTrades.reduce((s, t) => s + t.netPnL, 0);
+  const pnl30       = trades.reduce((s, t) => s + t.netPnL, 0);
+  const wins        = trades.filter(t => t.netPnL > 0).length;
+  const total       = trades.length;
+  const wr          = total ? wins / total * 100 : 0;
+
+  // Build balance time-series — used for both the DD stat chip and the chart
+  const balPts = buildBalancePoints(snapshots, history, trades);
+  const dd     = maxDrawdownFromPoints(balPts.points);
+
+  // Stats strip
+  const statsSec = el('div');
+  statsSec.innerHTML = `
+    <div class="section-title">${esc(friendlyName(acct))}</div>
+    <div class="stats-row">
+      <div class="stat-chip">
+        <div class="stat-label">Today's P&L</div>
+        <div class="stat-value ${pnlCls(todayPnL)}">${fmtD(todayPnL, true)}</div>
+        <div class="stat-sub">${todayTrades.length} trade${todayTrades.length !== 1 ? 's' : ''} today</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-label">30-Day P&L</div>
+        <div class="stat-value ${pnlCls(pnl30)}">${fmtD(pnl30, true)}</div>
+        <div class="stat-sub">${total} trade${total !== 1 ? 's' : ''} total</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value">${wr.toFixed(1)}%</div>
+        <div class="stat-sub">${wins}W&nbsp;/&nbsp;${total - wins}L</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-label">Max Drawdown</div>
+        <div class="stat-value ${ddCls(dd)}">${dd.toFixed(1)}%</div>
+        <div class="stat-sub">peak-to-trough · ${balPts.source}</div>
+      </div>
+    </div>`;
+  panel.appendChild(statsSec);
+
+  // Account balance + drawdown chart
+  if (balPts.points.length) {
+    const chartSec = el('div');
+    chartSec.innerHTML = '<div class="section-title">Account Balance &amp; Drawdown</div>';
+    const box = el('div', 'chart-box');
+    const cvs = el('canvas');
+    cvs.id = 'chart-' + acct.replace(/\W+/g, '_');
+    box.appendChild(cvs);
+    chartSec.appendChild(box);
+    panel.appendChild(chartSec);
+    setTimeout(() => renderAccountChart(cvs.id, balPts, color), 0);
+  }
+
+  // Today's strategy breakdown (computed from trades[], no DailySummary)
+  const breakdownSec = el('div');
+  breakdownSec.innerHTML = '<div class="section-title">Today\'s Strategy Breakdown</div>';
+  const summary = summarizeByStrategy(todayTrades);
+  if (!summary.length) {
+    breakdownSec.innerHTML += '<div class="empty">No trades today yet.</div>';
+  } else {
+    breakdownSec.appendChild(makeBreakdownTable(summary));
+  }
+  panel.appendChild(breakdownSec);
+
+  // Full trade log for this account
+  const logSec = el('div');
+  logSec.innerHTML = '<div class="section-title">Trade Log — Last 30 Days</div>';
+  logSec.appendChild(makeTradeTable(trades.slice().reverse(), false));
+  panel.appendChild(logSec);
+
+  return panel;
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+function renderAllChart(canvasId, accounts, trades) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const allDates = [...new Set(trades.map(t => t.date))].sort();
 
   const datasets = accounts.map((acct, i) => {
-    const byDate = {};
-    history[acct].forEach(e => byDate[e.date] = e.netPnL);
+    const at  = trades.filter(t => t.account === acct);
+    const eq  = dailyEquity(at);
+    const map = {};
+    eq.forEach(e => map[e.date] = e.cum);
     return {
-      label:           acct,
-      data:            labels.map(d => byDate[d] ?? null),
-      borderColor:     CHART_COLORS[i % CHART_COLORS.length],
-      backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '22',
-      borderWidth:     2,
-      pointRadius:     3,
-      pointHoverRadius:5,
-      tension:         0.25,
-      fill:            false,
-      spanGaps:        true
+      label:           friendlyName(acct),
+      data:            allDates.map(d => map[d] ?? null),
+      borderColor:     PALETTE[i % PALETTE.length],
+      backgroundColor: PALETTE[i % PALETTE.length] + '18',
+      borderWidth: 2, pointRadius: 3, pointHoverRadius: 5,
+      tension: 0.25, fill: false, spanGaps: true
     };
   });
 
-  const ctx = document.getElementById('pnl-chart').getContext('2d');
-  if (chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(canvas, {
     type: 'line',
-    data: { labels: labels.map(d => fmtDateShort(d)), datasets },
+    data: { labels: allDates.map(fmtDateShort), datasets },
+    options: baseChartOptions()
+  });
+}
+
+function renderAccountChart(canvasId, balPts, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const pts    = balPts.points;
+  const labels = pts.map(p => p.label);
+  const balData = pts.map(p => p.balance);
+
+  // Drawdown at each point: negative value so it renders below 0 on the right axis
+  let peak = -Infinity;
+  const ddData = pts.map(p => {
+    if (p.balance > peak) peak = p.balance;
+    if (peak <= 0) return 0;
+    return -round2((peak - p.balance) / peak * 100);
+  });
+
+  const sparse = pts.length > 60;  // hide dots when many points to reduce clutter
+
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label:           'Account Balance',
+          data:            balData,
+          borderColor:     color,
+          backgroundColor: color + '22',
+          borderWidth:     2.5,
+          pointRadius:     sparse ? 0 : 3,
+          pointHoverRadius: 4,
+          tension:         0.15,
+          fill:            false,
+          yAxisID:         'yBal',
+          order:           1
+        },
+        {
+          label:           'Drawdown %',
+          data:            ddData,
+          borderColor:     'rgba(248,81,73,0.85)',
+          backgroundColor: 'rgba(248,81,73,0.18)',
+          borderWidth:     1.5,
+          pointRadius:     0,
+          pointHoverRadius: 3,
+          tension:         0.15,
+          fill:            'origin',   // shades the area down from 0
+          yAxisID:         'yDD',
+          order:           2
+        }
+      ]
+    },
     options: {
       responsive: true,
       interaction: { mode: 'index', intersect: false },
@@ -374,69 +576,268 @@ function renderChart(history) {
         legend: { labels: { color: '#8b949e', font: { size: 12 } } },
         tooltip: {
           callbacks: {
-            label: ctx => ' ' + ctx.dataset.label + ': ' + fmtDollar(ctx.parsed.y, true)
+            label: ctx => {
+              if (ctx.datasetIndex === 0) return '  Balance: ' + fmtD(ctx.parsed.y);
+              return '  Drawdown: ' + Math.abs(ctx.parsed.y).toFixed(2) + '%';
+            }
           }
         }
       },
       scales: {
-        x: { ticks: { color: '#8b949e', maxRotation: 45, font: { size: 11 } }, grid: { color: '#21262d' } },
-        y: {
+        x: {
+          ticks: { color: '#8b949e', maxRotation: 45, font: { size: 11 }, maxTicksLimit: 20 },
+          grid:  { color: '#21262d' }
+        },
+        yBal: {
+          type: 'linear', position: 'left',
+          ticks: { color: '#8b949e', font: { size: 11 }, callback: dollarTick },
+          grid:  { color: '#21262d' }
+        },
+        yDD: {
+          type: 'linear', position: 'right',
+          max:  0,   // 0 % drawdown sits at the top of this axis
           ticks: {
-            color: '#8b949e', font: { size: 11 },
-            callback: v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0 })
+            color: '#f85149', font: { size: 11 },
+            callback: v => Math.abs(v).toFixed(1) + '%'
           },
-          grid: { color: '#21262d' }
+          grid: { drawOnChartArea: false }
         }
       }
     }
   });
 }
 
-// ── Trade Log Table ───────────────────────────────────────────────────────────
-function renderTrades(trades) {
-  const el = document.getElementById('trades-container');
-  if (!trades.length) {
-    el.innerHTML = '<div class="empty">No trades in the last 30 days.</div>';
-    return;
+function baseChartOptions() {
+  return {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: '#8b949e', font: { size: 12 } } },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmtD(ctx.parsed.y, true) } }
+    },
+    scales: {
+      x: { ticks: { color: '#8b949e', maxRotation: 45, font: { size: 11 } }, grid: { color: '#21262d' } },
+      y: { ticks: { color: '#8b949e', font: { size: 11 }, callback: dollarTick }, grid: { color: '#21262d' } }
+    }
+  };
+}
+
+function dollarTick(v) {
+  return (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 0 });
+}
+
+// ── Data calculations ─────────────────────────────────────────────────────────
+
+// Build daily P&L + cumulative series from chronologically-sorted trades
+function dailyEquity(trades) {
+  const map = {};
+  trades.forEach(t => { map[t.date] = (map[t.date] || 0) + t.netPnL; });
+  let cum = 0;
+  return Object.keys(map).sort().map(d => {
+    cum += map[d];
+    return { date: d, daily: round2(map[d]), cum: round2(cum) };
+  });
+}
+
+// Max % drawdown from cumulative P&L — used for the All-Accounts overview cards
+function maxDrawdown(trades) {
+  if (!trades.length) return 0;
+  let cum = 0, peak = -Infinity, maxDD = 0;
+  for (const t of trades) {
+    cum += t.netPnL;
+    if (cum > peak) peak = cum;
+    if (peak > 0) maxDD = Math.max(maxDD, (peak - cum) / peak * 100);
+  }
+  return maxDD;
+}
+
+// Build a unified balance time-series, preferring the most granular source available.
+// Returns { source: 'snapshots'|'history'|'trades', points: [{label, balance}] }
+function buildBalancePoints(snapshots, history, trades) {
+  // Priority 1: AccountSnapshots (intraday balance after every trade)
+  if (snapshots.length > 0) {
+    const pts = snapshots
+      .filter(s => s.accountBalance > 0)
+      .sort((a, b) => (a.timestamp < b.timestamp ? -1 : 1))
+      .map(s => ({
+        label:   fmtDateShort(s.date) + ' ' + fmtTime(s.timestamp),
+        balance: s.accountBalance
+      }));
+    if (pts.length) return { source: 'live snapshots', points: pts };
   }
 
-  const tbody = trades.map(t => `
+  // Priority 2: AccountHistory (daily EOD balance)
+  if (history.length > 0) {
+    const pts = history.map(h => ({
+      label:   fmtDateShort(h.date),
+      balance: h.accountBalance
+    }));
+    if (pts.length) return { source: 'daily history', points: pts };
+  }
+
+  // Priority 3: Cumulative P&L from trade data (no absolute balance available)
+  const equity = dailyEquity(trades);
+  return {
+    source: 'cumulative P&L',
+    points: equity.map(e => ({ label: fmtDateShort(e.date), balance: e.cum }))
+  };
+}
+
+// Max % drawdown from any [{balance}] point series
+function maxDrawdownFromPoints(points) {
+  if (!points.length) return 0;
+  let peak = -Infinity, maxDD = 0;
+  for (const p of points) {
+    if (p.balance > peak) peak = p.balance;
+    if (peak > 0) maxDD = Math.max(maxDD, (peak - p.balance) / peak * 100);
+  }
+  return maxDD;
+}
+
+// Group a set of trades by strategy for the breakdown table
+function summarizeByStrategy(trades) {
+  const map = {};
+  trades.forEach(t => {
+    if (!map[t.strategy]) map[t.strategy] = {
+      strategy: t.strategy, instrs: new Set(),
+      n: 0, wins: 0, losses: 0, gross: 0, comm: 0, net: 0
+    };
+    const s = map[t.strategy];
+    s.instrs.add(t.instrument);
+    s.n++;
+    t.netPnL > 0 ? s.wins++ : s.losses++;
+    s.gross += t.grossPnL;
+    s.comm  += t.commission;
+    s.net   += t.netPnL;
+  });
+  return Object.values(map).map(s => ({
+    strategy: s.strategy,
+    instrs:   [...s.instrs].join(', '),
+    n: s.n, wins: s.wins, losses: s.losses,
+    wr:    s.n ? s.wins / s.n * 100 : 0,
+    gross: round2(s.gross),
+    comm:  round2(s.comm),
+    net:   round2(s.net)
+  })).sort((a, b) => b.net - a.net);
+}
+
+// ── Table builders ────────────────────────────────────────────────────────────
+function makeBreakdownTable(rows) {
+  const totals = rows.reduce((acc, r) => {
+    acc.n += r.n; acc.wins += r.wins; acc.losses += r.losses;
+    acc.gross += r.gross; acc.comm += r.comm; acc.net += r.net;
+    return acc;
+  }, { n: 0, wins: 0, losses: 0, gross: 0, comm: 0, net: 0 });
+  const totalWr = totals.n ? totals.wins / totals.n * 100 : 0;
+
+  const wrap = el('div', 'table-wrap');
+  wrap.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Strategy</th><th>Instruments</th>
+        <th class="right">Trades</th><th class="right">W</th><th class="right">L</th>
+        <th class="right">Win%</th>
+        <th class="right">Gross P&amp;L</th>
+        <th class="right">Commission</th>
+        <th class="right">Net P&amp;L</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${esc(r.strategy)}</td>
+            <td>${esc(r.instrs)}</td>
+            <td class="right mono">${r.n}</td>
+            <td class="right mono">${r.wins}</td>
+            <td class="right mono">${r.losses}</td>
+            <td class="right"><span class="pill ${pillCls(r.wr)}">${r.wr.toFixed(0)}%</span></td>
+            <td class="right mono ${pnlCls(r.gross)}">${fmtD(r.gross)}</td>
+            <td class="right mono neg">${fmtD(-r.comm)}</td>
+            <td class="right mono ${pnlCls(r.net)}">${fmtD(r.net, true)}</td>
+          </tr>`).join('')}
+      </tbody>
+      <tfoot><tr>
+        <td colspan="2" style="color:var(--muted)">Total</td>
+        <td class="right">${totals.n}</td>
+        <td class="right">${totals.wins}</td>
+        <td class="right">${totals.losses}</td>
+        <td class="right"><span class="pill ${pillCls(totalWr)}">${totalWr.toFixed(0)}%</span></td>
+        <td class="right ${pnlCls(totals.gross)}">${fmtD(totals.gross)}</td>
+        <td class="right neg">${fmtD(-totals.comm)}</td>
+        <td class="right ${pnlCls(totals.net)}">${fmtD(totals.net, true)}</td>
+      </tr></tfoot>
+    </table>`;
+  return wrap;
+}
+
+function makeTradeTable(trades, showAccount) {
+  const wrap = el('div', 'table-wrap');
+  if (!trades.length) {
+    wrap.innerHTML = '<div class="empty">No trades in the last 30 days.</div>';
+    return wrap;
+  }
+
+  const acctCol = showAccount ? '<th>Account</th>' : '';
+  const tbody   = trades.map(t => `
     <tr>
       <td class="mono">${esc(t.date)}</td>
       <td class="mono">${fmtTime(t.exitTime)}</td>
-      <td>${esc(t.account)}</td>
+      ${showAccount ? `<td>${esc(friendlyName(t.account))}</td>` : ''}
       <td>${esc(t.strategy)}</td>
       <td>${esc(t.instrument)}</td>
       <td><span class="dir ${t.direction === 'Long' ? 'long' : 'short'}">${esc(t.direction)}</span></td>
       <td class="right mono">${t.qty}</td>
-      <td class="right mono">${t.entryPrice.toFixed(2)}</td>
-      <td class="right mono">${t.exitPrice.toFixed(2)}</td>
-      <td class="right mono ${pnlClass(t.netPnL)}">${fmtDollar(t.netPnL, true)}</td>
+      <td class="right mono">${(+t.entryPrice).toFixed(2)}</td>
+      <td class="right mono">${(+t.exitPrice).toFixed(2)}</td>
+      <td class="right mono ${pnlCls(t.grossPnL)}">${fmtD(t.grossPnL)}</td>
+      <td class="right mono neg">${fmtD(-t.commission)}</td>
+      <td class="right mono ${pnlCls(t.netPnL)}">${fmtD(t.netPnL, true)}</td>
     </tr>`).join('');
 
-  el.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Date</th><th>Exit Time</th><th>Account</th><th>Strategy</th><th>Instr</th>
-          <th>Dir</th><th class="right">Qty</th>
-          <th class="right">Entry</th><th class="right">Exit</th>
-          <th class="right">Net P&amp;L</th>
-        </tr></thead>
-        <tbody>${tbody}</tbody>
-      </table>
-    </div>`;
+  wrap.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Date</th><th>Exit Time</th>
+        ${acctCol}
+        <th>Strategy</th><th>Instr</th><th>Dir</th>
+        <th class="right">Qty</th>
+        <th class="right">Entry</th><th class="right">Exit</th>
+        <th class="right">Gross P&amp;L</th>
+        <th class="right">Commission</th>
+        <th class="right">Net P&amp;L</th>
+      </tr></thead>
+      <tbody>${tbody}</tbody>
+    </table>`;
+  return wrap;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function pnlClass(v) { return v > 0 ? 'pos' : v < 0 ? 'neg' : ''; }
-function winClass(r) { return r >= 55 ? 'good' : r >= 40 ? 'fair' : 'bad'; }
+function makePanel(id) {
+  const p = el('div', 'panel');
+  p.dataset.panel = id;
+  return p;
+}
 
-function fmtDollar(v, signed) {
+function el(tag, cls) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+}
+
+function pnlCls(v)  { return v > 0 ? 'pos' : v < 0 ? 'neg' : ''; }
+function ddCls(v)   { return v > 15 ? 'neg' : v > 5 ? 'warn' : (v > 0 ? '' : ''); }
+function pillCls(r) { return r >= 55 ? 'good' : r >= 40 ? 'fair' : 'bad'; }
+function round2(v)  { return Math.round(v * 100) / 100; }
+
+function cmpTrades(a, b) {
+  const ta = a.exitTime || (a.date + 'T23:59:59');
+  const tb = b.exitTime || (b.date + 'T23:59:59');
+  return ta < tb ? -1 : ta > tb ? 1 : 0;
+}
+
+function fmtD(v, signed) {
   const n   = parseFloat(v) || 0;
   const abs = Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (signed) return (n >= 0 ? '+$' : '-$') + abs;
-  return (n < 0 ? '-$' : '$') + abs;
+  return signed ? (n >= 0 ? '+$' : '-$') + abs : (n < 0 ? '-$' : '$') + abs;
 }
 
 function fmtDateLabel(iso) {
@@ -449,15 +850,12 @@ function fmtDateLabel(iso) {
 
 function fmtDateShort(iso) {
   if (!iso || iso.length < 10) return iso;
-  const m = parseInt(iso.substring(5,7));
-  const d = parseInt(iso.substring(8,10));
-  return m + '/' + d;
+  return parseInt(iso.substring(5, 7)) + '/' + parseInt(iso.substring(8, 10));
 }
 
 function fmtTime(isoStr) {
   if (!isoStr) return '—';
   try {
-    // Try to parse ISO 8601 strings like "2026-05-07T09:32:00-05:00"
     const d = new Date(isoStr);
     if (isNaN(d.getTime())) return isoStr.substring(11, 16) || isoStr;
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
@@ -466,10 +864,8 @@ function fmtTime(isoStr) {
 
 function esc(s) {
   return String(s || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 </script>
 </body>
